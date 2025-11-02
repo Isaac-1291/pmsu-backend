@@ -1,20 +1,37 @@
 import express from "express";
 import Member from "../models/Member.js";
+import Notification from "../models/Notification.js";
 
 const router = express.Router();
 
-// Add new member
+/**
+ * @route   POST /api/members
+ * @desc    Register a new member and create a notification
+ * @access  Public
+ */
 router.post("/", async (req, res) => {
   try {
-    const member = new Member(req.body);
-    await member.save();
-    res.status(201).json({ message: "Member registered successfully", member });
+    // Create new member
+    const newMember = await Member.create(req.body);
+
+    // Create notification for the new member
+    await Notification.create({
+      type: "member",
+      message: `New member registered: ${newMember.fullName}`,
+      recipientEmail: newMember.email,
+    });
+
+    res.status(201).json({ message: "Member registered successfully", member: newMember });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Get all members
+/**
+ * @route   GET /api/members
+ * @desc    Get all members
+ * @access  Public
+ */
 router.get("/", async (req, res) => {
   try {
     const members = await Member.find();

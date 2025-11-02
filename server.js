@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 import memberRoutes from "./routes/memberRoutes.js";
 import loanRoutes from "./routes/loanRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js"; // <-- move this up
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use("/api/members", memberRoutes);
 app.use("/api/loans", loanRoutes);
+app.use("/api/notifications", notificationRoutes); // <-- use before listen
 
 app.get("/", (req, res) => {
   res.send("PMSU API is running...");
