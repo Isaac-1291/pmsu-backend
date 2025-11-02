@@ -1,9 +1,17 @@
 import express from "express";
 import Loan from "../models/Loan.js";
 import Notification from "../models/Notification.js";
-import sendEmail from "../utils/sendEmail.js"; // optional, if email is set up
 
 const router = express.Router();
+
+// Try to import sendEmail if it exists, otherwise use a placeholder
+let sendEmail;
+try {
+  sendEmail = (await import("../utils/sendEmail.js")).default;
+} catch (err) {
+  console.warn("⚠️ sendEmail.js not found, emails will be skipped");
+  sendEmail = async () => {}; // noop function
+}
 
 /**
  * @route   POST /api/loans
@@ -41,7 +49,6 @@ router.get("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const loan = await Loan.findByIdAndUpdate(req.params.id, req.body, { new: true });
-
     if (!loan) return res.status(404).json({ message: "Loan not found" });
 
     // Create notification
@@ -52,7 +59,7 @@ router.put("/:id", async (req, res) => {
       recipientEmail: loan.email,
     });
 
-    // Optional: send email
+    // Send email (will skip if sendEmail is not available)
     if (loan.email) {
       await sendEmail({
         to: loan.email,
